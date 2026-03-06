@@ -15,6 +15,10 @@ if [ ! -f "$SQL_FILE" ]; then
     exit 1
 fi
 
+# Disconnect all other sessions
+echo "Disconnecting active connections to $DB_NAME..."
+sudo -u postgres psql -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$DB_NAME';"
+
 # Drop database if exists
 echo "Dropping database if it exists..."
 sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;"

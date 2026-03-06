@@ -114,11 +114,7 @@ stages:
               commands: |
                 set -e
                 echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod +x $(restoreDBscript)
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(restoreDBscript) \
-                    "$(DB_PASSWORD)" \
-                    "$(dbUser)" \
-                    "$(dbName)" \
-                    "$(tempDeploy)/odoo.sql"
+                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(restoreDBscript) "odoo17" "odoo" "/home/azureuser/deploy-temp/odoo.sql"
 
           # Run update script
           - task: SSH@0

@@ -1,24 +1,30 @@
 #!/bin/bash
 set -e
 
-# --- Assign pipeline variables passed as arguments ---
-# If you prefer, you can also export them from SSH task, but passing as args is safer.
-PGPASSWORD="$1"   # DB password
-DB_USER="$2"     # e.g., odoo17
-DB_NAME="$3"     # e.g., odoo
-SQL_FILE="$4"    # e.g., odoo.sql
+# --- Arguments ---
+DB_USER="$1"     # e.g., odoo17
+DB_NAME="$2"     # e.g., odoo
+SQL_FILE="$3"    # e.g., /home/azureuser/deploy-temp/odoo.sql
 
-echo "Using DB_USER=$DB_USER, DB_NAME=$DB_NAME, SQL_FILE=$SQL_FILE"
+echo "Restoring PostgreSQL database..."
+echo "DB_USER=$DB_USER, DB_NAME=$DB_NAME, SQL_FILE=$SQL_FILE"
 
-cd "$(dirname "$SQL_FILE")"
+# Check if SQL file exists
+if [ ! -f "$SQL_FILE" ]; then
+    echo "Error: SQL file not found at $SQL_FILE"
+    exit 1
+fi
 
-echo "Dropping database if exists..."
-psql -U "$DB_USER" -d postgres -c "DROP DATABASE IF EXISTS $DB_NAME;"
+# Drop database if exists
+echo "Dropping database if it exists..."
+sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;"
 
-echo "Creating database..."
-psql -U "$DB_USER" -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+# Create database with owner
+echo "Creating database $DB_NAME with owner $DB_USER..."
+sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
 
-echo "Restoring database from SQL..."
-psql -U "$DB_USER" -d "$DB_NAME" -f "$(basename "$SQL_FILE")"
+# Restore SQL file
+echo "Restoring SQL from $SQL_FILE..."
+sudo -u postgres psql -d "$DB_NAME" -f "$SQL_FILE"
 
-echo "Database restore completed!"
+echo "Database restore completed successfully!"
